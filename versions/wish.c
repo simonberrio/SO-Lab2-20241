@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 int main(int argc, char *argv[]) {
     FILE *input = stdin;
@@ -38,8 +39,39 @@ int main(int argc, char *argv[]) {
             break; // EOF
         }
 
-        //Muestro el comando leido en pantalla
-        printf("Comando leído: %s", line);
+        // Quitamos salto de línea final
+        line[strcspn(line, "\n")] = '\0';
+
+        // Ignorar líneas vacías
+        if (strlen(line) == 0) continue;
+
+        // Tokenizar la línea (máx. 10 args)
+        char *args[10];
+        int argc_cmd = 0;
+        char *token = strtok(line, " \t");
+
+        while (token != NULL && argc_cmd < 9) {
+            args[argc_cmd++] = token;
+            token = strtok(NULL, " \t");
+        }
+        args[argc_cmd] = NULL;
+
+        // Crear proceso hijo
+        pid_t pid = fork();
+
+        if (pid == 0) {
+            // Proceso hijo: intenta ejecutar el comando
+            execvp(args[0], args);
+            // Si llega aquí, hubo error
+            fprintf(stderr, "An error has occurred\n");
+            exit(1);
+        } else if (pid > 0) {
+            // Proceso padre: espera al hijo
+            waitpid(pid, NULL, 0);
+        } else {
+            // Error al crear proceso
+            fprintf(stderr, "An error has occurred\n");
+        }
     }
 
     free(line);
