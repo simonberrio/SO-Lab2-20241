@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #define MAX_PATHS 10
 
@@ -65,15 +66,37 @@ int main(int argc, char *argv[]) {
         }
         args[argc_cmd] = NULL;
 
-        int background = 0;  // 0 = normal, 1 = en segundo plano
-        if (argc_cmd > 0 && strcmp(args[argc_cmd - 1], "&") == 0) {
-            background = 1;
-            args[argc_cmd - 1] = NULL;  // eliminamos el & para execv
+        int background = 0;
+        for (int i = 0; args[i] != NULL; i++) {
+            if (strcmp(args[i], "&") == 0) {
+                background = 1;
+                args[i] = NULL;  // eliminamos el &
+                break;
+            }
         }
+
+        int redirect = 0;
+        char *outfile = NULL;
+        for (int i = 0; i < argc_cmd; i++) {
+            if (strcmp(args[i], ">") == 0) {
+                redirect = 1;
+
+                // Validar formato: debe haber exactamente un archivo después de '>'
+                if (i + 1 >= argc_cmd || i + 2 != argc_cmd) {
+                    fprintf(stderr, "An error has occurred\n");
+                    redirect = -1;
+                } else {
+                    outfile = args[i + 1];
+                    args[i] = NULL; // cortar la lista de args para execv
+                }
+                break;
+            }
+        }
+        if (redirect == -1) continue;
 
     	//Comando interno: exit
 	    if (argc_cmd > 0 && strcmp(args[0], "exit") == 0) {
-	        if (argc_cmd != 1) {
+    	        if (argc_cmd != 1) {
 	            /* exit no acepta argumentos */
         	    fprintf(stderr, "An error has occurred\n");
         	    /* continuar al siguiente prompt */
@@ -120,6 +143,16 @@ int main(int argc, char *argv[]) {
 
         if (pid == 0) {
             // Proceso hijo: intenta buscar el comando en los paths
+            if (redirect == 1) {
+                int fd = open(outfile, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+                if (fd < 0) {
+                    fprintf(stderr, "An error has occurred\n");
+                    exit(1);
+                }
+                dup2(fd, STDOUT_FILENO);  // redirigir stdout
+                close(fd);
+            }
+
             for (int i = 0; i < path_count; i++) {
                 char full_path[256];
                 snprintf(full_path, sizeof(full_path), "%s/%s", paths[i], args[0]);
