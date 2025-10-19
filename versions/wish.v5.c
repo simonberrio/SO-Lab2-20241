@@ -111,13 +111,20 @@ int main(int argc, char *argv[]) {
         pid_t pid = fork();
 
         if (pid == 0) {
-            // Proceso hijo: intenta buscar el comando en los paths
-            for (int i = 0; i < path_count; i++) {
-                char full_path[256];
-                snprintf(full_path, sizeof(full_path), "%s/%s", paths[i], args[0]);
-                execv(full_path, args);
+            // Proceso hijo: intenta ejecutar el comando
+            if (pid == 0) {
+                // Proceso hijo: intenta buscar el comando en los paths
+                for (int i = 0; i < path_count; i++) {
+                    char full_path[256];
+                    snprintf(full_path, sizeof(full_path), "%s/%s", paths[i], args[0]);
+                    execv(full_path, args);
+                }
+                // Si llega aquí, ningún path funcionó
+                fprintf(stderr, "An error has occurred\n");
+                exit(1);
             }
-            // Si llega aquí, ningún path funcionó
+
+            // Si llega aquí, hubo error
             fprintf(stderr, "An error has occurred\n");
             exit(1);
         } else if (pid > 0) {
