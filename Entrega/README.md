@@ -68,3 +68,61 @@ La implementación de funcionalidades como redirección y ejecución paralela pe
 El resultado final es un programa estable, funcional y cercano en comportamiento a un shell real, cumpliendo con los objetivos de aprendizaje propuestos.
 
 ---
+Pruebas en WSL de ejecucion del codigo:
+<img width="855" height="995" alt="image" src="https://github.com/user-attachments/assets/e178d051-f680-4c09-9457-40c066d34fe6" />
+<img width="925" height="550" alt="image" src="https://github.com/user-attachments/assets/79616a84-4d0d-4897-bb9c-d24bac103658" />
+
+Pruebas realizadas
+
+Para verificar el correcto funcionamiento del shell wish, se ejecutaron una serie de pruebas prácticas siguiendo los pasos de desarrollo de cada versión.
+Las pruebas fueron realizadas tanto en modo interactivo como en modo batch, y se registraron mediante capturas de pantalla incluidas en la entrega.
+
+1. Ejecución básica
+Se ejecutó el programa con:
+./wish
+El shell mostró el prompt "wish>" y permitió ingresar comandos manualmente, confirmando que el bucle principal funcionaba correctamente.
+
+2. Ejecución de comandos externos
+Se probaron comandos del sistema como:
+ls
+pwd
+echo Hola Mundo
+El shell ejecutó correctamente los programas utilizando fork() y execvp(), mostrando su salida en pantalla.
+
+3. Comando interno exit
+Se verificó el cierre adecuado del programa ejecutando:
+exit
+El proceso finalizó sin errores, validando la correcta implementación de la instrucción de salida.
+
+4. Comando cd
+Se probaron cambios de directorio:
+cd ..
+pwd
+Confirmando que el shell actualizaba correctamente su directorio de trabajo mediante chdir().
+
+5. Comando path
+Se configuraron rutas de búsqueda y se validó su efecto:
+path /bin /usr/bin
+ls
+path
+ls
+path /bin
+Cuando la lista de rutas quedó vacía, el shell respondió con "An error has occurred", como se esperaba.
+Tras reconfigurar el path, los comandos volvieron a ejecutarse correctamente.
+
+6. Redirección de salida
+Se probó la redirección de salida con:
+ls > salida.txt
+cat salida.txt
+Confirmando que dup2() redirigía la salida estándar hacia el archivo especificado.
+
+7. Ejecución paralela
+Se verificó la ejecución simultánea de varios procesos:
+ls & pwd & echo listo
+Cada comando se ejecutó en paralelo, mostrando resultados intercalados.
+
+8. Modo batch
+Finalmente, se ejecutó el shell leyendo comandos desde un archivo:
+./wish entrada.txt
+El programa procesó correctamente cada línea del archivo como si fuera ingresada manualmente.
+
