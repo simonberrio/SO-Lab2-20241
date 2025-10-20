@@ -66,11 +66,14 @@ Desde la carpeta Entrega donde esta wish.c, sin embargo tambien esta la opcion d
 Durante el desarrollo de este laboratorio se comprendió de forma práctica el funcionamiento interno de un shell en Unix,
 desde la lectura de comandos hasta la creación y sincronización de procesos.
 
-La implementación de funcionalidades como redirección y ejecución paralela permitió afianzar el manejo de descriptores de archivos,
+La implementación de funcionalidades como redirección y ejecución paralela
+permitió afianzar el manejo de descriptores de archivos,
 procesos hijos y control de flujo mediante llamadas al sistema.
-Asimismo, se reforzó el uso de herramientas de control de versiones (Git) para mantener un proceso de desarrollo ordenado y modular.
+Asimismo, se reforzó el uso de herramientas de control de versiones (Git)
+para mantener un proceso de desarrollo ordenado y modular.
 
-El resultado final es un programa estable, funcional y cercano en comportamiento a un shell real, cumpliendo con los objetivos de aprendizaje propuestos.
+El resultado final es un programa estable, funcional y cercano en comportamiento a un shell real,
+cumpliendo con los objetivos de aprendizaje propuestos.
 
 ---
 Pruebas en WSL de ejecucion del codigo:
