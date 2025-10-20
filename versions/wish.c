@@ -68,15 +68,23 @@ int main(int argc, char *argv[]) {
         }
         args[argc_cmd] = NULL;
 
+        // Manejo de &, > y archivo de salida
+        int background = 0;
         int redirect = 0;
         char *outfile = NULL;
 
-        // Buscar símbolo '>'
+        // Si el último argumento es &
+        if (argc_cmd > 0 && strcmp(args[argc_cmd - 1], "&") == 0) {
+            background = 1;
+            args[--argc_cmd] = NULL; // eliminar &
+        }
+
+        // Buscar símbolo >
         for (int i = 0; i < argc_cmd; i++) {
             if (strcmp(args[i], ">") == 0) {
                 redirect = 1;
 
-                // Validar que haya exactamente un archivo después de '>'
+                // Debe haber exactamente un archivo después de '>'
                 if (i + 1 >= argc_cmd || i + 2 != argc_cmd) {
                     fprintf(stderr, "An error has occurred\n");
                     redirect = -1;
@@ -84,19 +92,14 @@ int main(int argc, char *argv[]) {
                 }
 
                 outfile = args[i + 1];
-                args[i] = NULL;  // cortar aquí para que execv solo vea el comando
+                args[i] = NULL;
+                argc_cmd = i; // cortar la lista de argumentos
                 break;
             }
         }
 
         if (redirect == -1) {
-            continue; // error en la sintaxis de redirección
-        }
-
-        int background = 0;  // 0 = normal, 1 = en segundo plano
-        if (argc_cmd > 0 && strcmp(args[argc_cmd - 1], "&") == 0) {
-            background = 1;
-            args[argc_cmd - 1] = NULL;  // eliminamos el & para execv
+            continue; // error de sintaxis
         }
 
     	//Comando interno: exit
