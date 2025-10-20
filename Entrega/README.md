@@ -29,9 +29,11 @@ SO-Lab2-20241/
 │
 ├── README.md                    # Readme general del repositorio## Descripción general
 
-El objetivo del laboratorio fue implementar paso a paso un shell minimalista en lenguaje C, denominado wish, capaz de ejecutar comandos del sistema, manejar rutas, redirección, ejecución paralela y lectura desde archivos.
+El objetivo del laboratorio fue implementar paso a paso un shell minimalista en lenguaje C, denominado wish,
+capaz de ejecutar comandos del sistema, manejar rutas, redirección, ejecución paralela y lectura desde archivos.
 
-Cada versión construye sobre la anterior, incorporando progresivamente nuevas funcionalidades hasta lograr un shell funcional con comportamiento similar al de bash.
+Cada versión construye sobre la anterior, incorporando progresivamente nuevas funcionalidades
+hasta lograr un shell funcional con comportamiento similar al de bash.
 
 ---
 
@@ -61,9 +63,12 @@ Desde la carpeta Entrega donde esta wish.c, sin embargo tambien esta la opcion d
 
 ## Conclusiones
 
-Durante el desarrollo de este laboratorio se comprendió de forma práctica el funcionamiento interno de un shell en Unix, desde la lectura de comandos hasta la creación y sincronización de procesos.
+Durante el desarrollo de este laboratorio se comprendió de forma práctica el funcionamiento interno de un shell en Unix,
+desde la lectura de comandos hasta la creación y sincronización de procesos.
 
-La implementación de funcionalidades como redirección y ejecución paralela permitió afianzar el manejo de descriptores de archivos, procesos hijos y control de flujo mediante llamadas al sistema. Asimismo, se reforzó el uso de herramientas de control de versiones (Git) para mantener un proceso de desarrollo ordenado y modular.
+La implementación de funcionalidades como redirección y ejecución paralela permitió afianzar el manejo de descriptores de archivos,
+procesos hijos y control de flujo mediante llamadas al sistema.
+Asimismo, se reforzó el uso de herramientas de control de versiones (Git) para mantener un proceso de desarrollo ordenado y modular.
 
 El resultado final es un programa estable, funcional y cercano en comportamiento a un shell real, cumpliendo con los objetivos de aprendizaje propuestos.
 
