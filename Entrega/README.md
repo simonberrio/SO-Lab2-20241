@@ -77,7 +77,7 @@ cumpliendo con los objetivos de aprendizaje propuestos.
 
 ---
 Pruebas en WSL de ejecucion del codigo:
-![Pantallazo de ejecución básica](Entrega/img1.jpg)
+![Pantallazo de las pruebas al codigo1:](img1.jpg)
 
 <img width="925" height="550" alt="image" src="https://github.com/user-attachments/assets/1df4ec85-0c3e-4580-8ce7-ebe2b59cf961" />
 
