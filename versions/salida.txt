@@ -1,1 +1,21 @@
-Sun Oct 19 20:26:07 -05 2025
+comandos.txt
+entrada.txt
+salida.txt
+wish
+wish.c
+wish.v1
+wish.v1.c
+wish.v2
+wish.v2.c
+wish.v3
+wish.v3.c
+wish.v4
+wish.v4.c
+wish.v5
+wish.v5.c
+wish.v6
+wish.v6.c
+wish.v7
+wish.v7.c
+wish.v8
+wish.v8.c
