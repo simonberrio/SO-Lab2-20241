@@ -3,106 +3,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <fcntl.h>
 #include <signal.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 #define MAX_PATHS 10
-#define MAX_ARGS 10
-#define MAX_COMMANDS 10
 
 char *paths[MAX_PATHS];
 int path_count = 0;
-
-void ejecutar_comando(char *line) {
-    // Tokenizar la línea
-    char *args[MAX_ARGS];
-    int argc_cmd = 0;
-    char *token = strtok(line, " \t");
-    while (token != NULL && argc_cmd < MAX_ARGS - 1) {
-        args[argc_cmd++] = token;
-        token = strtok(NULL, " \t");
-    }
-    args[argc_cmd] = NULL;
-
-    if (argc_cmd == 0) return; // línea vacía
-
-    // Comandos internos
-    // exit
-    if (strcmp(args[0], "exit") == 0) {
-        if (argc_cmd != 1) {
-            fprintf(stderr, "An error has occurred\n");
-            return;
-        }
-        exit(0);
-    }
-
-    // cd
-    if (strcmp(args[0], "cd") == 0) {
-        if (argc_cmd != 2) {
-            fprintf(stderr, "An error has occurred\n");
-            return;
-        }
-        if (chdir(args[1]) != 0) {
-            fprintf(stderr, "An error has occurred\n");
-        }
-        return;
-    }
-
-    // path
-    if (strcmp(args[0], "path") == 0) {
-        for (int i = 0; i < path_count; i++) free(paths[i]);
-        path_count = 0;
-        for (int i = 1; i < argc_cmd && i < MAX_PATHS; i++) {
-            paths[path_count++] = strdup(args[i]);
-        }
-        return;
-    }
-
-    // Redirección de salida
-    int redirect = 0;
-    char *outfile = NULL;
-
-    for (int i = 0; i < argc_cmd; i++) {
-        if (strcmp(args[i], ">") == 0) {
-            redirect = 1;
-            if (i + 1 >= argc_cmd || i + 2 != argc_cmd) {
-                fprintf(stderr, "An error has occurred\n");
-                return;
-            }
-            outfile = args[i + 1];
-            args[i] = NULL;
-            break;
-        }
-    }
-
-    // Proceso hijo
-    pid_t pid = fork();
-    if (pid == 0) {
-        if (redirect == 1) {
-            int fd = open(outfile, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
-            if (fd < 0) {
-                fprintf(stderr, "An error has occurred\n");
-                exit(1);
-            }
-            dup2(fd, STDOUT_FILENO);
-            dup2(fd, STDERR_FILENO);
-            close(fd);
-        }
-
-        for (int i = 0; i < path_count; i++) {
-            char full_path[256];
-            snprintf(full_path, sizeof(full_path), "%s/%s", paths[i], args[0]);
-            execv(full_path, args);
-        }
-
-        fprintf(stderr, "An error has occurred\n");
-        exit(1);
-    } else if (pid < 0) {
-        fprintf(stderr, "An error has occurred\n");
-    } else {
-        // Padre: no espera aquí (esperará después en paralelo)
-    }
-}
 
 int main(int argc, char *argv[]) {
     signal(SIGCHLD, SIG_IGN); //Para evitar procesos zombies
@@ -149,41 +57,125 @@ int main(int argc, char *argv[]) {
         // Ignorar líneas vacías
         if (strlen(line) == 0) continue;
 
-        // Dividir la línea por '&' (comandos en paralelo)
-        char *commands[MAX_COMMANDS];
-        int num_cmds = 0;
-        char *cmd = strtok(line, "&");
-        while (cmd != NULL && num_cmds < MAX_COMMANDS) {
-            commands[num_cmds++] = cmd;
-            cmd = strtok(NULL, "&");
+        // Tokenizar la línea (máx. 10 args)
+        char *args[10];
+        int argc_cmd = 0;
+        char *token = strtok(line, " \t");
+
+        while (token != NULL && argc_cmd < 9) {
+            args[argc_cmd++] = token;
+            token = strtok(NULL, " \t");
+        }
+        args[argc_cmd] = NULL;
+
+        int redirect = 0;
+        char *outfile = NULL;
+
+        // Buscar símbolo '>'
+        for (int i = 0; i < argc_cmd; i++) {
+            if (strcmp(args[i], ">") == 0) {
+                redirect = 1;
+
+                // Validar que haya exactamente un archivo después de '>'
+                if (i + 1 >= argc_cmd || i + 2 != argc_cmd) {
+                    fprintf(stderr, "An error has occurred\n");
+                    redirect = -1;
+                    break;
+                }
+
+                outfile = args[i + 1];
+                args[i] = NULL;  // cortar aquí para que execv solo vea el comando
+                break;
+            }
         }
 
-        pid_t pids[MAX_COMMANDS];
+        if (redirect == -1) {
+            continue; // error en la sintaxis de redirección
+        }
 
-        for (int i = 0; i < num_cmds; i++) {
-            // Quitar espacios iniciales y finales
-            while (*commands[i] == ' ') commands[i]++;
-            char *end = commands[i] + strlen(commands[i]) - 1;
-            while (end > commands[i] && *end == ' ') *end-- = '\0';
+        int background = 0;  // 0 = normal, 1 = en segundo plano
+        if (argc_cmd > 0 && strcmp(args[argc_cmd - 1], "&") == 0) {
+            background = 1;
+            args[argc_cmd - 1] = NULL;  // eliminamos el & para execv
+        }
 
-            if (strlen(commands[i]) == 0) continue;
+    	//Comando interno: exit
+	    if (argc_cmd > 0 && strcmp(args[0], "exit") == 0) {
+	        if (argc_cmd != 1) {
+	            /* exit no acepta argumentos */
+        	    fprintf(stderr, "An error has occurred\n");
+        	    /* continuar al siguiente prompt */
+        	    continue;
+    	    } else {
+        	    /* limpiar y salir */
+        	    if (line) free(line);
+        	        if (batch_mode && input) fclose(input);
+        	            exit(0);
+    	    }
+	    }
+	    // Comando interno: cd
+	    if (argc_cmd > 0 && strcmp(args[0], "cd") == 0) {
+    	    /* cd debe recibir exactamente un argumento (cd <dir>) */
+		    if (argc_cmd != 2) {
+           	    fprintf(stderr, "An error has occurred\n");
+        	    continue;
+    		}
+	    	/* intentar cambiar de directorio */
+	    	if (chdir(args[1]) != 0) {
+		        fprintf(stderr, "An error has occurred\n");
+	    	}
+    		/* ya ejecutamos cd en el padre, no fork ni exec */
+		    continue;
+	    }
+        // Comando interno: path
+        if (strcmp(args[0], "path") == 0) {
+            // Liberar rutas anteriores
+            for (int i = 0; i < path_count; i++) {
+                free(paths[i]);
+            }
+            path_count = 0;
 
-            pid_t pid = fork();
-            if (pid == 0) {
-                ejecutar_comando(commands[i]);
-                exit(0);
-            } else if (pid > 0) {
-                pids[i] = pid;
+            // Agregar nuevas rutas
+            for (int i = 1; i < argc_cmd && i < MAX_PATHS; i++) {
+                paths[path_count++] = strdup(args[i]);
+            }
+
+            continue;
+        }
+
+        // Crear proceso hijo
+        pid_t pid = fork();
+
+        if (pid == 0) {
+            // Proceso hijo: intenta buscar el comando en los paths
+            if (redirect == 1) {
+                int fd = open(outfile, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+                if (fd < 0) {
+                    fprintf(stderr, "An error has occurred\n");
+                    exit(1);
+                }
+                dup2(fd, STDOUT_FILENO);
+                close(fd);
+            }
+
+            for (int i = 0; i < path_count; i++) {
+                char full_path[256];
+                snprintf(full_path, sizeof(full_path), "%s/%s", paths[i], args[0]);
+                execv(full_path, args);
+            }
+            // Si llega aquí, ningún path funcionó
+            fprintf(stderr, "An error has occurred\n");
+            exit(1);
+        } else if (pid > 0) {
+            // Proceso padre
+            if (background) {
+                printf("Proceso en segundo plano iniciado con PID %d\n", pid);
             } else {
-                fprintf(stderr, "An error has occurred\n");
+                waitpid(pid, NULL, 0);
             }
-        }
-
-        // Esperar a todos los hijos
-        for (int i = 0; i < num_cmds; i++) {
-            if (pids[i] > 0) {
-                waitpid(pids[i], NULL, 0);
-            }
+        } else {
+            // Error al crear proceso
+            fprintf(stderr, "An error has occurred\n");
         }
     }
 
