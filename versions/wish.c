@@ -15,7 +15,7 @@ int path_count = 0;
 char error_message[30] = "An error has occurred\n";
 
 void print_error() {
-    fprintf(stderr, "%s", error_message);
+    write(STDERR_FILENO, error_message, strlen(error_message));
 }
 
 int execute_command(char *cmd_line) {
@@ -201,6 +201,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    for (int i = 0; i < path_count; i++) {
+       free(paths[i]);
+    }
     free(line);
     if (batch_mode) fclose(input);
 
