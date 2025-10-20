@@ -77,9 +77,8 @@ cumpliendo con los objetivos de aprendizaje propuestos.
 
 ---
 Pruebas en WSL de ejecucion del codigo:
-![Pantallazo de las pruebas al codigo1:](img1.jpg)
-
-<img width="925" height="550" alt="image" src="https://github.com/user-attachments/assets/1df4ec85-0c3e-4580-8ce7-ebe2b59cf961" />
+![img1](https://github.com/user-attachments/assets/5b9c9b2b-e2f5-46ac-8c46-cb7c22c2ea4a)
+![img2](https://github.com/user-attachments/assets/88a263a1-5a41-46ce-81f3-65969d499126)
 
 
 Para verificar el correcto funcionamiento del shell wish, se ejecutaron una serie de pruebas prácticas siguiendo los pasos de desarrollo de cada versión.
